@@ -16,7 +16,7 @@ async function createWindow() {
   });
 
   await mainWindow.loadURL(indexMainFile);
-  // mainWindow.webContents.openDevTools(); 
+  // mainWindow.webContents.openDevTools();
 
   createNewFile();
 
@@ -66,13 +66,36 @@ async function saveFileAs() {
 }
 
 function justSaveFile() {
-  debugger
+  debugger;
   if (file.saved) {
     return saveFile(file.path);
   }
 
   //salvar como
   return saveFileAs();
+}
+
+function readFile(filePath){
+try {
+  fs.readFileSync(filePath, 'utf8')
+} catch (error) {
+  console.log(error)
+  return ''
+}
+}
+
+async function openFile() {
+  let dialogFile = await dialog.showOpenDialog({
+    defaultPath: file.path,
+  });
+
+  file = {
+    name: path.basename(dialogFile.filePaths[0]),
+    content: readFile(dialogFile.filePaths[0]),
+    saved: true,
+    path: dialogFile.filePaths[0]
+  }
+  mainWindow.webContents.send("set-file", file);
 }
 
 //template menu
@@ -86,6 +109,7 @@ const templateMenu = [
         submenu: [
           {
             label: "File",
+            accelerator:'Ctrl+N',
             click() {
               createNewFile();
             },
@@ -94,15 +118,21 @@ const templateMenu = [
       },
       {
         label: "Abrir",
+        accelerator:'Ctrl+O',
+        click(){
+          openFile()
+        }
       },
       {
         label: "Salvar",
+        accelerator:'Ctrl+S',
         click() {
           justSaveFile();
         },
       },
       {
         label: "Salvar como...",
+        accelerator:'Ctrl+A',
         click() {
           saveFileAs();
         },
